@@ -15,3 +15,26 @@ TOKEN=<your discord bot token>
 GUILDS=<your guild id>
 OWNERS=<your discord user id>
 ```
+
+## Usage
+
+Run the bot using `python main.py`
+Sync commands in your discord server using following command:
+```bash
+!sync *
+```
+```bash
+!sync ~
+```
+
+## Commands
+
+- `!sync *` - Sync all commands
+- `!sync ~` - Sync only owner commands
+- `/ping` - Check if the bot is online
+- `/usage <start_date> <end_date>` - Get the usage for the given date range
+- `/compare <start_1> <end_1> <start_2> <end_2>` - Compare the usage for the given date ranges
+- `/day <date>` - Get the usage for the given date. If no date is provided, it will default to today
+
+>[!WARNING]
+>Date Format should be `YYYY-MM-DD`
