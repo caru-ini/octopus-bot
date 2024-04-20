@@ -14,7 +14,7 @@ import discord
 from dotenv import load_dotenv
 
 from localtime import midnight, days_in_the_past
-from datetime import datetime
+import datetime
 from octopus import OctopusSettings
 
 load_dotenv()
@@ -25,6 +25,41 @@ logging.basicConfig(level=logging.DEBUG)
 
 logging.getLogger('discord').setLevel(logging.INFO)
 logging.getLogger('octopus').setLevel(logging.DEBUG)
+
+
+@bot.command()
+@commands.guild_only()
+@commands.is_owner()
+async def sync(ctx: commands.Context, guilds: commands.Greedy[discord.Object],
+               spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    if not guilds:
+        if spec == "~":
+            synced = await bot.tree.sync(guild=ctx.guild)
+        elif spec == "*":
+            ctx.bot.tree.copy_global_to(guild=ctx.guild)
+            synced = await bot.tree.sync(guild=ctx.guild)
+        elif spec == "^":
+            ctx.bot.tree.clear_commands(guild=ctx.guild)
+            await ctx.bot.tree.sync(guild=ctx.guild)
+            synced = []
+        else:
+            synced = await ctx.bot.tree.sync()
+
+        await ctx.send(
+            f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+        )
+        return
+
+    ret = 0
+    for guild in guilds:
+        try:
+            await ctx.bot.tree.sync(guild=guild)
+        except discord.HTTPException:
+            pass
+        else:
+            ret += 1
+
+    await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
 
 @bot.event
@@ -38,43 +73,17 @@ class MainCog(commands.Cog):
         self.settings = OctopusSettings()
         self.octopus = self.settings.get_octopus()
 
+    @staticmethod
+    # validate format
+    async def validate_date(date: str, ctx: commands.Context) -> Optional[datetime.datetime]:
+        if not re.match(r"\d{4}-\d{2}-\d{2}", date):
+            await ctx.send("Invalid date format. Use `YYYY-MM-DD`.")
+            return
+        return datetime.datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=pytz.timezone("Asia/Tokyo"))
+
     @commands.hybrid_command()
     async def ping(self, ctx: commands.Context) -> None:
         await ctx.send('Pong!')
-
-    @commands.hybrid_command()
-    @commands.guild_only()
-    @commands.is_owner()
-    async def sync(self, ctx: commands.Context, guilds: commands.Greedy[discord.Object],
-                   spec: Optional[Literal["~", "*", "^"]] = None) -> None:
-        if not guilds:
-            if spec == "~":
-                synced = await self.bot.tree.sync(guild=ctx.guild)
-            elif spec == "*":
-                ctx.bot.tree.copy_global_to(guild=ctx.guild)
-                synced = await self.bot.tree.sync(guild=ctx.guild)
-            elif spec == "^":
-                ctx.bot.tree.clear_commands(guild=ctx.guild)
-                await ctx.bot.tree.sync(guild=ctx.guild)
-                synced = []
-            else:
-                synced = await ctx.bot.tree.sync()
-
-            await ctx.send(
-                f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
-            )
-            return
-
-        ret = 0
-        for guild in guilds:
-            try:
-                await ctx.bot.tree.sync(guild=guild)
-            except discord.HTTPException:
-                pass
-            else:
-                ret += 1
-
-        await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
     @commands.hybrid_command(
         name="info",
@@ -107,22 +116,16 @@ class MainCog(commands.Cog):
         end_at="取得する期間の終了日時。指定しない場合は開始日時から最新のデータまで取得します。",
     )
     async def usage(self, ctx: commands.Context, start_at: Optional[str] = None, end_at: Optional[str] = None) -> None:
-        # validate format
-        async def validate_date(date: str) -> Optional[datetime]:
-            if not re.match(r"\d{4}-\d{2}-\d{2}", date):
-                await ctx.send("Invalid date format. Use `YYYY-MM-DD`.")
-                return
-            return datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=pytz.timezone("Asia/Tokyo"))
 
         if start_at is None and end_at is None:
             start_at = midnight(days_in_the_past(7))
             end_at = midnight()
         elif end_at is None:
-            start_at = await validate_date(start_at)
+            start_at = await self.validate_date(start_at, ctx)
             end_at = midnight()
         else:
-            start_at = await validate_date(start_at)
-            end_at = await validate_date(end_at)
+            start_at = await self.validate_date(start_at, ctx)
+            end_at = await self.validate_date(end_at, ctx)
 
         readings = await self.octopus.get_hh_readings(start_at, end_at)
         embed = Embed(
@@ -216,17 +219,11 @@ class MainCog(commands.Cog):
         date="取得する日。ハイフン区切りで指定します。(例:2024-01-01)",
     )
     async def day(self, ctx: commands.Context, date: Optional[str] = None) -> None:
-        # validate format
-        async def validate_date(date: str) -> Optional[datetime]:
-            if not re.match(r"\d{4}-\d{2}-\d{2}", date):
-                await ctx.send("Invalid date format. Use `YYYY-MM-DD`.")
-                return
-            return datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=pytz.timezone("Asia/Tokyo"))
 
         if date is None:
             date = midnight(days_in_the_past(1))
         else:
-            date = await validate_date(date)
+            date = await self.validate_date(date, ctx)
 
         readings = await self.octopus.get_hh_readings(date, midnight(date) + datetime.timedelta(days=1))
         embed = Embed(
