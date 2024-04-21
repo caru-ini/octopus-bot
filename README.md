@@ -5,8 +5,10 @@ This repository is WIP and is not yet ready for use.
 ## Installation
 
 1. Clone the repository
-2. Install the required packages using `pip install -r requirements.txt`
-3. Create a `.env` file in the root directory of the repository and add the following:
+2. (Optional) Create a virtual environment using `python -m venv venv` 
+3. (Optional) Activate it using `source venv/bin/activate` on Linux or `venv\Scripts\activate` on Windows
+4. Install the required packages using `pip install -r requirements.txt`
+5. Create a `.env` file in the root directory of the repository and add the following:
 
 ```dotenv
 OCTOPUS_EMAIL=<your email>
@@ -38,3 +40,7 @@ Sync commands in your discord server using following command:
 
 >[!WARNING]
 >Date Format should be `YYYY-MM-DD`
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
