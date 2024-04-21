@@ -158,14 +158,14 @@ class MainCog(commands.Cog):
     async def compare(self, ctx: commands.Context, start_at1: Optional[str] = None, end_at1: Optional[str] = None,
                       start_at2: Optional[str] = None, end_at2: Optional[str] = None) -> None:
         # validate format
-        async def validate_date(date: str) -> Optional[datetime]:
+        async def validate_date(date: str) -> Optional[datetime.datetime]:
             if not re.match(r"\d{4}-\d{2}-\d{2}", date):
                 await ctx.send("Invalid date format. Use `YYYY-MM-DD`.")
                 return
             return datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=pytz.timezone("Asia/Tokyo"))
 
         async def validate_order(start: datetime, end: datetime) -> Optional[
-            tuple[datetime, datetime]]:
+            tuple[datetime.datetime, datetime.datetime]]:
             if start > end:
                 await ctx.send("Invalid date order.")
                 return
