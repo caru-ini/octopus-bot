@@ -32,7 +32,6 @@ Sync commands in your discord server using following command:
 ## Commands
 
 - `!sync *` - Sync all commands
-- `!sync ~` - Sync only owner commands
 - `/ping` - Check if the bot is online
 - `/usage <start_date> <end_date>` - Get the usage for the given date range
 - `/compare <start_1> <end_1> <start_2> <end_2>` - Compare the usage for the given date ranges
@@ -40,6 +39,12 @@ Sync commands in your discord server using following command:
 
 >[!WARNING]
 >Date Format should be `YYYY-MM-DD`
+
+## To Do
+
+- [ ] Add notifications for when the usage is above a certain threshold
+- [ ] Show the usage in a graph
+- [ ] Make easier to select the date range
 
 ## License
 
