@@ -1,10 +1,22 @@
+>[!WARNING]WIP 
+>This repository is Work In Progress and it may contain bugs or incomplete features.
 # Octopus Energy API Discord Bot
 
-This repository is WIP and is not yet ready for use.
+オクトパスエナジーのAPIを使用したDiscordボット。
+日本のAPI(api.oejp-kraken.energy)を想定して作成されていますので、UKなどの他のAPIとは互換性がありません。
+
+Discord bot using the Octopus Energy API.
+It is designed to work with the Japanese API (api.oejp-kraken.energy) and is not compatible with other APIs such as the UK one.
+
+## Disclaimer
+
+このBotの使用によって生じたいかなる損害についても、制作者は一切の責任を負いません。利用者の責任においてご利用ください。
+
+The creator is not responsible for any damage caused by the use of this bot. Please use it at your own risk.
 
 ## Installation
 
-1. Clone the repository
+1. Clone the repository `git clone https://github.com/caru-ini/octopus-bot.git`
 2. (Optional) Create a virtual environment using `python -m venv venv` 
 3. (Optional) Activate it using `source venv/bin/activate` on Linux or `venv\Scripts\activate` on Windows
 4. Install the required packages using `pip install -r requirements.txt`
@@ -15,7 +27,7 @@ OCTOPUS_EMAIL=<your email>
 OCTOPUS_PASSWORD=<your password>
 TOKEN=<your discord bot token>
 GUILDS=<your guild id>
-OWNERS=<your discord user id>
+OWNERS=<your discord user id> # Optional, comma separated
 ```
 
 ## Usage
@@ -25,9 +37,8 @@ Sync commands in your discord server using following command:
 ```bash
 !sync *
 ```
-```bash
-!sync ~
-```
+This required every time you change the commands.\
+In most cases, you will only need to run this command once.
 
 ## Commands
 
