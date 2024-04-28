@@ -1,5 +1,5 @@
->[!WARNING] :construction: WIP 
->This repository is Work In Progress and it may contain bugs or incomplete features.
+>[!WARNING] 
+>:construction: This repository is Work In Progress and it may contain bugs or incomplete features.
 # Octopus Energy API Discord Bot
 
 オクトパスエナジーのAPIを使用したDiscordボット。
@@ -48,7 +48,7 @@ In most cases, you will only need to run this command once.
 - `/compare <start_1> <end_1> <start_2> <end_2>` - Compare the usage for the given date ranges
 - `/day <date>` - Get the usage for the given date. If no date is provided, it will default to today
 
->[!WARNING] Caution
+>[!WARNING]
 >Date Format should be `YYYY-MM-DD`
 
 ## To Do
