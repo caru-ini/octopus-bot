@@ -4,7 +4,7 @@ import decimal
 from typing import List, Optional
 import localtime
 
-import aiohttp
+import httpx
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
@@ -74,43 +74,43 @@ class Octopus:
             return True
 
     async def get_token(self) -> str:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                    url=self.api_url,
-                    json={
-                        "query": self.AUTH_BODY,
-                        "variables": {
-                            "input": {
-                                "email": self.email,
-                                "password": self.password,
-                            }
-                        },
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url=self.api_url,
+                json={
+                    "query": self.AUTH_BODY,
+                    "variables": {
+                        "input": {
+                            "email": self.email,
+                            "password": self.password,
+                        }
                     },
-            ) as response:
-                response_dict = await response.json()
-                await self._validate_response(response_dict)
+                },
+            )
+            response_dict = response.json()
+            await self._validate_response(response_dict)
 
-                return response_dict["data"]["obtainKrakenToken"]["token"]
+            return response_dict["data"]["obtainKrakenToken"]["token"]
 
     async def get_account_number(self) -> str:
         token = await self.get_token()
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                    url=self.api_url,
-                    json={
-                        "query": self.GET_ACCOUNT_BODY,
-                    },
-                    headers={"authorization": f"JWT {token}"},
-            ) as response:
-                response_dict = await response.json()
-                await self._validate_response(response_dict)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url=self.api_url,
+                json={
+                    "query": self.GET_ACCOUNT_BODY,
+                },
+                headers={"authorization": f"JWT {token}"},
+            )
+            response_dict = response.json()
+            await self._validate_response(response_dict)
 
-                return response_dict["data"]["viewer"]["accounts"][0]["number"]
+            return response_dict["data"]["viewer"]["accounts"][0]["number"]
 
     async def get_hh_readings(
-            self,
-            start_at: datetime.datetime,
-            end_at: Optional[datetime.datetime] = None,
+        self,
+        start_at: datetime.datetime,
+        end_at: Optional[datetime.datetime] = None,
     ) -> List[HHReading]:
         token = await self.get_token()
         number = await self.get_account_number()
@@ -124,35 +124,35 @@ class Octopus:
 
         print(f"{variables=}")
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                    url=self.api_url,
-                    json={
-                        "query": self.GET_HH_BODY,
-                        "variables": variables,
-                    },
-                    headers={"authorization": f"JWT {token}"},
-            ) as response:
-                response_dict = await response.json()
-                await self._validate_response(response_dict)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url=self.api_url,
+                json={
+                    "query": self.GET_HH_BODY,
+                    "variables": variables,
+                },
+                headers={"authorization": f"JWT {token}"},
+            )
+            response_dict = response.json()
+            await self._validate_response(response_dict)
 
-                readings_raw = response_dict["data"]["account"]["properties"][0][
-                    "electricitySupplyPoints"
-                ][0]["halfHourlyReadings"]
-                readings: List[HHReading] = []
-                for reading_raw in readings_raw:
-                    readings.append(
-                        HHReading(
-                            start_at=datetime.datetime.fromisoformat(
-                                reading_raw["startAt"]
-                            ),
-                            end_at=datetime.datetime.fromisoformat(reading_raw["endAt"]),
-                            version=reading_raw["version"],
-                            value=decimal.Decimal(reading_raw["value"]),
-                        )
+            readings_raw = response_dict["data"]["account"]["properties"][0][
+                "electricitySupplyPoints"
+            ][0]["halfHourlyReadings"]
+            readings: List[HHReading] = []
+            for reading_raw in readings_raw:
+                readings.append(
+                    HHReading(
+                        start_at=datetime.datetime.fromisoformat(
+                            reading_raw["startAt"]
+                        ),
+                        end_at=datetime.datetime.fromisoformat(reading_raw["endAt"]),
+                        version=reading_raw["version"],
+                        value=decimal.Decimal(reading_raw["value"]),
                     )
+                )
 
-                return readings
+            return readings
 
     @staticmethod
     async def _validate_response(response_dict: dict) -> None:
